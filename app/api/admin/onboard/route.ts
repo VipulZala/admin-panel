@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { Admin } from "@/models/Admin";
 import { connectDB } from "@/lib/db";
 
@@ -26,32 +26,32 @@ export async function POST(req: Request) {
 
   await connectDB();
 
-let admin = await Admin.findOne({ email });
+  let admin = await Admin.findOne({ email });
 
-if (!admin) {
-  admin = await Admin.create({
-    email,
-    role: "admin",
-    password: "temp1234",
-  });
+  if (!admin) {
+    admin = await Admin.create({
+      email,
+      role: "admin",
+      password: "temp1234",
+    });
+
+    return NextResponse.json({
+      message: "Admin created successfully with temporary access",
+    });
+  }
+
+  if (admin.role === "admin") {
+    return NextResponse.json({
+      message: "Admin already exists",
+    });
+  }
+
+  admin.role = "admin";
+  await admin.save();
 
   return NextResponse.json({
-    message: "Admin created successfully with temporary access",
+    message: "Admin onboarded successfully",
   });
-}
-
-if (admin.role === "admin") {
-  return NextResponse.json({
-    message: "Admin already exists",
-  });
-}
-
-admin.role = "admin";
-await admin.save();
-
-return NextResponse.json({
-  message: "Admin onboarded successfully",
-});
 
 }
 

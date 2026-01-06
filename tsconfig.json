@@ -1,9 +1,11 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "types": ["next-auth"],
     "target": "ES2017",
-     "typeRoots": ["./types", "./node_modules/@types"],
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types"
+    ],
     "lib": [
       "dom",
       "dom.iterable",
