@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { connectDB } from "../lib/db.ts";
 import { Admin } from "../models/Admin.ts";
 
