@@ -1,10 +1,22 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/db";
 import { Admin } from "@/models/Admin";
 
 export const authOptions: NextAuthOptions = {
+  debug: true,
+  logger: {
+    error(code, metadata) {
+      console.error("NextAuth Error:", code, metadata);
+    },
+    warn(code) {
+      console.warn("NextAuth Warning:", code);
+    },
+    debug(code, metadata) {
+      console.log("NextAuth Debug:", code, metadata);
+    },
+  },
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -27,7 +39,7 @@ export const authOptions: NextAuthOptions = {
 
         await connectDB();
 
-        
+
         const admin = await Admin.findOne({
           email: credentials.email,
         });
@@ -36,7 +48,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid email or password");
         }
 
-  
+
         const isValid = await bcrypt.compare(
           credentials.password,
           admin.password
