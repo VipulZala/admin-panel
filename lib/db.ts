@@ -1,9 +1,5 @@
-import dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
 
 import mongoose from "mongoose";
-
-const MONGODB_URI = process.env.MONGODB_URI;
 
 // Global cache (important for Next.js hot reloads)
 let cached = (global as any).mongoose;
@@ -13,14 +9,19 @@ if (!cached) {
 }
 
 export async function connectDB() {
-  if (!MONGODB_URI) {
-    throw new Error("Please define the MONGODB_URI environment variable");
+  // Explicitly check for MONGODB_URI and provide more context
+  const uri = process.env.MONGODB_URI;
+
+  if (!uri) {
+    console.error("Environment check failed: MONGODB_URI is undefined");
+    throw new Error("MONGODB_URI is not defined. Please ensure .env.local exists and your server has been RESTARTED.");
   }
 
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI).then((mongoose) => {
+    cached.promise = mongoose.connect(uri).then((mongoose) => {
+      console.log("Successfully connected to MongoDB");
       return mongoose;
     });
   }
