@@ -33,37 +33,40 @@ export const authOptions: NextAuthOptions = {
       },
 
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) {
-          throw new Error("Email and password are required");
+        try {
+          if (!credentials?.email || !credentials.password) {
+            throw new Error("Email and password are required");
+          }
+
+          await connectDB();
+
+          const admin = await Admin.findOne({
+            email: credentials.email,
+          });
+
+          if (!admin) {
+            throw new Error("Invalid email or password");
+          }
+
+          const isValid = await bcrypt.compare(
+            credentials.password,
+            admin.password
+          );
+
+          if (!isValid) {
+            throw new Error("Invalid email or password");
+          }
+
+          return {
+            id: admin._id.toString(),
+            name: admin.name,
+            email: admin.email,
+            role: "admin",
+          };
+        } catch (error: any) {
+          console.error("Authorization Error:", error.message);
+          throw error;
         }
-
-        await connectDB();
-
-
-        const admin = await Admin.findOne({
-          email: credentials.email,
-        });
-
-        if (!admin) {
-          throw new Error("Invalid email or password");
-        }
-
-
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          admin.password
-        );
-
-        if (!isValid) {
-          throw new Error("Invalid email or password");
-        }
-
-        return {
-          id: admin._id.toString(),
-          name: admin.name,
-          email: admin.email,
-          role: "admin",
-        };
       },
     }),
   ],
