@@ -9,24 +9,37 @@ if (!cached) {
 }
 
 export async function connectDB() {
-  // Explicitly check for MONGODB_URI and provide more context
   const uri = process.env.MONGODB_URI;
 
   if (!uri) {
-    console.error("Environment check failed: MONGODB_URI is undefined");
-    throw new Error("MONGODB_URI is not defined. Please ensure .env.local exists and your server has been RESTARTED.");
+    console.error("MONGODB_URI is missing");
+    throw new Error("MONGODB_URI is not defined.");
   }
 
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(uri).then((mongoose) => {
-      console.log("Successfully connected to MongoDB");
+    const opts = {
+      bufferCommands: false,
+      maxPoolSize: 1, // Optimization for serverless
+    };
+
+    console.log("Attempting to connect to MongoDB...");
+    cached.promise = mongoose.connect(uri, opts).then((mongoose) => {
+      console.log("Connected to MongoDB successfully");
       return mongoose;
+    }).catch((err) => {
+      console.error("MongoDB connection error details:", err.message);
+      throw err;
     });
   }
 
-  cached.conn = await cached.promise;
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null; // Reset promise on failure
+    throw e;
+  }
   return cached.conn;
 }
 
